@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from setuptools import setup, find_packages
 from codecs import open
 import six
@@ -18,9 +16,11 @@ setup(
     license='GPLv3',
     packages=find_packages(exclude=['doc', 'test']),
     include_package_data=True,
+    python_requires='>3.0',
     install_requires=['numpy', 'scipy', 'pandas', 'xarray>=0.10.0', 'dask',
-                      'rasterio', 'shapely', 'bottleneck', 'cyordereddict',
-'toolz'],
+                      'rasterio', 'shapely', 'bottleneck',
+                      'toolz',
+                      'cyordereddict ; python_version<'3.5'"],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
