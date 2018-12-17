@@ -19,7 +19,7 @@ setup(
     python_requires='>3.0',
     install_requires=['numpy', 'scipy', 'pandas', 'xarray>=0.10.0', 'dask',
                       'rasterio', 'shapely', 'bottleneck',
-                      'toolz'"],
+                      'toolz'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
