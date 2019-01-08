@@ -26,7 +26,8 @@ setup(
                       'shapely',
                       'bottleneck',
                       'pyproj',
-                      'toolz'],
+                      'toolz',
+                      'progressbar2'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
