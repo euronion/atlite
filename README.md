@@ -80,8 +80,7 @@ Getting started
 -   Install atlite from this repository with all its library
     dependencies\
     ```pip install git+https://github.com/FRESNA/atlite.git```
--   Download one of the weather datasets listed above:
-    * Data from ERA5 is downloaded automatically (TODO unclear: when and where?)
+-   Download one of the weather datasets, see notes below.
 -   Adjust the [atlite/config.py](atlite/config.py) directory paths to
     point to the directory where you downloaded the dataset
 -   Create a cutout, i.e. a geographical rectangle and a selection of
@@ -90,6 +89,14 @@ Getting started
 -   Select a sparse matrix of the geographical points inside the cutout
     you want to aggregate for your time series, and pass it to the
     appropriate converter function - see [examples/](examples/)
+
+### Notes on accessing the different data sets
+
+| Data set | Note | Link |
+|----------|------|------|
+| ERA-5    | Data for this data set is downloaded automatically when creating a cutout. For this to work, the `ecmwfapirc` client has to be installed and a API key set up. See the link for detailed information. |  [ECMWF website](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets)    |
+| NCEP (CFSR) | Data is downloaded as `.grb2` files and stored in the location specified in the [atlite/config.py](atlite/config.py) file. Cutouts are created from this data. | [NCAR Research Data Archive](https://rda.ucar.edu/datasets/ds094.1/) |
+
 
 Licence
 -------

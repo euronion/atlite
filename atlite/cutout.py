@@ -15,9 +15,9 @@
 
 
 """
-Renewable Energy Atlas Lite (Atlite)
+Renewable Energy Atlas Lite (Atlite) - a light-weight alternative for the Aarhus RE Atlas.
 
-Light-weight version of Aarhus RE Atlas for converting weather data to power systems data
+Cutout class used as basis for creating time-series based on weather data for capacity layouts.
 """
 
 from __future__ import absolute_import
@@ -41,6 +41,26 @@ from .gis import compute_indicatormatrix
 
 class Cutout(object):
     def __init__(self, name=None, cutout_dir=config.cutout_dir, **cutoutparams):
+        """Construct a cutout object.
+
+        Such a cutout object represents a rectangular geographic cutout specified by the latitude/longitude of its
+        upper left and lower right corners. A cutout contains the weather data for one or more months up to multiple years.
+        A cutout is created from weather data files, commonly reanalysis data.
+
+        Args:
+            name (str):
+            cutout_dir (Optional[str]):     Location for storing the cutout, defaults to the location in config.py.
+
+        Keyword Args (**cutoutparams):
+            module (str):                   Weather data set to use.
+            xs (slice(float,float,None)):   Longitutdes of the upper left and lower right corner of the rectangular cutout.
+            ys (slice(float,float,None)):   Latitudes of the upper left and lower right corner of the rectangular cutout.
+            years (slice(int,int,None)):    Years the cutout covers.
+            months (slice(int,int,None)):   Months the cutout covers.
+
+        """
+
+
         self.name = name
 
         self.cutout_dir = os.path.join(cutout_dir, name)
