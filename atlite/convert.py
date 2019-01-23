@@ -484,17 +484,48 @@ def convert_runoff(ds):
 
 def runoff(cutout, smooth=None, lower_threshold_quantile=None,
            normalize_using_yearly=None, **params):
-    result = cutout.convert_and_aggregate(convert_func=convert_runoff, **params)
+    '''
+    Convert runoff water flow into hydro generation time-series.
 
+    Parameters
+    ----------
+    smooth : int, True or None
+        Enable smoothing as running average across all values with the parameter
+        as the windows width (defaults to 24*7 elements).
+    lower_threshold_quantile : float, True or None
+        Quantile below which all time-series entries are cutoff and force-set to 0
+        (defaults to 0.5 % or 5e-3).
+    normalize_using_yearly : pd.DataFrame or None
+        Annual generation from (runoff) hydro power in MWh/a to normalise to.
+        Columns: Countries, Index: Years.
+        The total generation is normalised to the total reference per country,
+        i.e. a single correction factor for all years is applied.
+
+    Returns
+    -------
+    runoff : xr.DataArray
+        Time-series or capacity factors based on additional general
+        conversion arguments.
+
+    Note
+    ----
+    You can also specify all of the general conversion arguments
+    documented in the `convert_and_aggregate` function.
+    '''
+
+    result = cutout.convert_and_aggregate(convert_func=convert_runoff, **params)
+    
     if smooth is not None:
-        if smooth is True: smooth = 24*7
+        if smooth is True:
+            smooth = 24*7
         if "return_capacity" in params.keys():
             result = result[0].rolling(time=smooth, min_periods=1).mean(), result[1]
         else:
             result = result.rolling(time=smooth, min_periods=1).mean()
 
     if lower_threshold_quantile is not None:
-        if lower_threshold_quantile is True: lower_threshold_quantile = 5e-3
+        if lower_threshold_quantile is True:
+            lower_threshold_quantile = 5e-3
         lower_threshold = pd.Series(result.values.ravel()).quantile(lower_threshold_quantile)
         result.values[result.values < lower_threshold] = 0.
 
@@ -505,6 +536,8 @@ def runoff(cutout, smooth=None, lower_threshold_quantile=None,
         else:
             normalize_using_yearly_i = normalize_using_yearly_i.astype(int)
 
+        # Determine all years in time-series for which close to all hours are present
+        # and generate the overlap with the normalize_using_yearly generation data
         years = (pd.Series(pd.to_datetime(result.coords['time'].values).year)
                  .value_counts().loc[lambda x: x>8700].index
                  .intersection(normalize_using_yearly_i))
