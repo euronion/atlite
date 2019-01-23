@@ -20,7 +20,7 @@ setup(
     install_requires=['numpy',
                       'scipy',
                       'pandas',
-                      'xarray>=0.10.0',
+                      'xarray>=0.11.2',
                       'dask>=0.18.0',
                       'rasterio',
                       'shapely',
