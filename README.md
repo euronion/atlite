@@ -95,8 +95,23 @@ Getting started
 | Data set | Note | Link |
 |----------|------|------|
 | ERA-5    | Data for this data set is downloaded automatically when creating a cutout. For this to work, the `ecmwfapirc` client has to be installed and a API key set up. See the link for detailed information. |  [ECMWF website](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets)    |
-| NCEP (CFSR) | Data is downloaded as `.grb2` files and stored in the location specified in the [atlite/config.py](atlite/config.py) file. Cutouts are created from this data. | [NCAR Research Data Archive](https://rda.ucar.edu/datasets/ds094.1/) |
+| NCEP (CFSR) | Data is downloaded as `.grb2` files and stored in the location specified in the [atlite/config.py](atlite/config.py) file. Cutouts are created from this data. [1] | [NCAR Research Data Archive](https://rda.ucar.edu/datasets/ds094.1/). |
 
+
+[1] Requires `pynio` to be installed, see the [xarray documentation](http://xarray.pydata.org/en/stable/io.html#formats-supported-by-pynio).
+
+
+FAQ
+---
+
+* `RuntimeError: b'major axis or radius = 0 or not given'` on `import atlite`:
+
+    This can be caused when `pyproj` is installed from `conda-forge`.
+    `geopandas` and `pyproj` should be installed via pip.
+* Problem with `pynio` when reading GRIB files:
+
+    The current version of `pynio=1.5.4` has been reported to not work on CentOS,
+    confirmed OS where this problem does not arise are: Oracle Linux, ... (tbd)
 
 Licence
 -------
