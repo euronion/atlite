@@ -190,7 +190,7 @@ def prepare_roughness_ncep(fn, yearmonth, xs, ys, engine=engine):
 
 def prepare_meta_ncep(xs, ys, year, month, template, height_config, module, engine=engine):
     try:
-        template = template.format(year=year, month=mont)
+        template = template.format(year=year, month=month)
         fn = next(glob.iglob(template))
     except StopIteration as e:
         logger.error("No matching file found for weather dataset template: {t}.".format(t=template))
