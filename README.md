@@ -38,14 +38,16 @@ following datasets:
 
 It can process the following weather data fields:
 
--   Temperature
--   Downward short-wave radiation
--   Upward short-wave radiation
--   Wind speeds
--   Runoff
--   Surface roughness
--   Height maps
--   Soil temperature
+| Variable                      | NCEP/CFSR name(s) |
+|-------------------------------|-------------------|
+| Temperature                   | <- |
+| Downward short-wave radiation | <- |
+| Upward short-wave radiation   | <- |
+| Wind speeds                   | u- & v- component of wind |
+| Runoff                        | Water runoff |
+| Surface roughness             | (included?) |
+| Height maps                   | (included?) |
+| Soil temperature              | (included?) |
 
 The following power-system relevant time series can be produced for all
 possible spatial distributions of assets:
@@ -95,7 +97,7 @@ Getting started
 | Data set | Note | Link |
 |----------|------|------|
 | ERA-5    | Data for this data set is downloaded automatically when creating a cutout. For this to work, the `ecmwfapirc` client has to be installed and a API key set up. See the link for detailed information. |  [ECMWF website](https://confluence.ecmwf.int/display/WEBAPI/Access+ECMWF+Public+Datasets)    |
-| NCEP (CFSR) | Data is downloaded as `.grb2` files and stored in the location specified in the [atlite/config.py](atlite/config.py) file. Cutouts are created from this data. [1] | [NCAR Research Data Archive](https://rda.ucar.edu/datasets/ds094.1/). |
+| NCEP (CFSR) | Data is downloaded as `.grb2` files and stored in the location specified in the [atlite/config.py](atlite/config.py) file, cutouts are then created from this file [1].  | [NCAR Research Data Archive](https://rda.ucar.edu/datasets/ds094.1/). |
 
 
 [1] Requires `pynio` to be installed, see the [xarray documentation](http://xarray.pydata.org/en/stable/io.html#formats-supported-by-pynio).
