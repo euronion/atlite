@@ -32,6 +32,9 @@ import tempfile
 import subprocess
 import shutil
 
+import logging
+logger = logging.getLogger(__name__)
+
 from ..config import ncep_dir
 
 engine = 'pynio'
@@ -186,7 +189,13 @@ def prepare_roughness_ncep(fn, yearmonth, xs, ys, engine=engine):
         yield yearmonth, ds
 
 def prepare_meta_ncep(xs, ys, year, month, template, height_config, module, engine=engine):
-    fn = next(glob.iglob(template.format(year=year, month=month)))
+    try:
+        template = template.format(year=year, month=mont)
+        fn = next(glob.iglob(template))
+    except StopIteration as e:
+        logger.error("No matching file found for weather dataset template: {t}.".format(t=template))
+        raise
+
     with xr.open_dataset(fn, engine=engine) as ds:
         ds = ds.coords.to_dataset()
         ds = convert_lons_lats_ncep(ds, xs, ys)
