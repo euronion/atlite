@@ -357,7 +357,9 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
 
 def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
-    POW = np.asarray(POW)
+    V = np.asarray(V)
+    P = np.asarray(P)
+    utilisation = POW/P
 
     ds['roughness'].values[ds['roughness'].values <= 0.0] = 0.0002
 
@@ -370,7 +372,7 @@ def convert_wind(ds, turbine):
     wnd_hub = ds[data_name] * (np.log(hub_height/ds['roughness']) /
                                np.log(data_height/ds['roughness']))
 
-    wind_energy = xr.DataArray(np.interp(wnd_hub, V, POW/P),
+    wind_energy = xr.DataArray(np.interp(wnd_hub, V, utilisation),
                                coords=wnd_hub.coords)
     return wind_energy
 
