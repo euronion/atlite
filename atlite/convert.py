@@ -357,6 +357,7 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
 
 def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
+    POW = np.asarray(POW)
 
     ds['roughness'].values[ds['roughness'].values <= 0.0] = 0.0002
 
@@ -366,12 +367,10 @@ def convert_wind(ds, turbine):
     else:
         raise AssertionError("Wind speed is not in dataset")
 
-    wnd_hub = np.multiply(ds[data_name],
-                          np.log(hub_height/ds['roughness']) /
-                          np.log(data_height/ds['roughness'])
-                         )
+    wnd_hub = ds[data_name] * (np.log(hub_height/ds['roughness']) /
+                               np.log(data_height/ds['roughness']))
 
-    wind_energy = xr.DataArray(np.interp(wnd_hub, V, np.asarray(POW)/P),
+    wind_energy = xr.DataArray(np.interp(wnd_hub, V, POW/P),
                                coords=wnd_hub.coords)
     return wind_energy
 
