@@ -366,8 +366,11 @@ def convert_wind(ds, turbine):
     else:
         raise AssertionError("Wind speed is not in dataset")
 
-    wnd_hub = ds[data_name] * (np.log(hub_height/ds['roughness']) /
-                               np.log(data_height/ds['roughness']))
+    wnd_hub = np.multiply(ds[data_name],
+                          np.log(hub_height/ds['roughness']) /
+                          np.log(data_height/ds['roughness'])
+                         )
+
     wind_energy = xr.DataArray(np.interp(wnd_hub, V, np.asarray(POW)/P),
                                coords=wnd_hub.coords)
     return wind_energy
