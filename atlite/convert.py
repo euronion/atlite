@@ -352,6 +352,20 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
                                         c0=c0, c1=c1, t_store=t_store,
                                         **params)
 
+def sanitise_roughness(roughness):
+    roughness.values[roughness.values <= 0.0] = 0.0002
+
+def log_data_height(data_height, roughness):
+    return np.log(data_height- roughness)
+
+def log_hub_height(hub_height, roughness):
+    return np.log(hub_height- roughness)
+
+def wind_multiplication(wind_speed, hub_height, data_height, roughness):
+    return wind_speed * log_hub_height(hub_height, roughness) / log_data_height(data_height, roughness)
+
+def power_interpolation(wnd_hub, V, POW, P):
+    return np.interp(wnd_hub, V, np.asarray(POW)/P)
 
 ## wind
 def convert_wind(ds, turbine):
@@ -363,24 +377,11 @@ def convert_wind(ds, turbine):
     else:
         raise AssertionError("Wind speed is not in dataset")
     
-    def sanitise_roughness():
-        ds['roughness'].values[ds['roughness'].values <= 0.0] = 0.0002
+    sanitise_roughness(ds['roughness'])
 
-    def log_data_height():
-        return (np.log(data_height-ds['roughness']))
- 
-    def log_hub_height():
-        return (np.log(hub_height-ds['roughness']))
+    wnd_hub = wind_multiplication(ds[data_name, hub_height, data_height, ds['roughness']]) 
 
-    def wind_multiplication():
-        return ds[data_name] * log_hub_height() / log_data_height()
-    
-    def power_interpolation():
-        return np.interp(wnd_hub, V, np.asarray(POW)/P)
-
-    wnd_hub = wind_multiplication() 
-
-    wind_energy = xr.DataArray(power_interpolation(), coords=ds[data_name].coords)
+    wind_energy = xr.DataArray(power_interpolation(wnd_hub, V, POW, P), coords=ds[data_name].coords)
 
     return wind_energy
 
