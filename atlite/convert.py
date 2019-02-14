@@ -354,7 +354,6 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
 
 
 ## wind
-from scipy.interpolate import interp1d
 def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
     power_func = interp1d(V, np.asarray(POW)/P)
@@ -365,14 +364,17 @@ def convert_wind(ds, turbine):
     else:
         raise AssertionError("Wind speed is not in dataset")
 
-    roughness = ds['roughness']
+    roughness = ds['roughness'].values
     roughness[np.where(roughness <= .0)] = 0.0002
+
+    wnd_spd = ds[data_name].values
+
     log_roughness = np.log(roughness)
 
-    wnd_spd = ds[data_name]
     wnd_hub = wnd_spd * (np.log(hub_height) - log_roughness)/(np.log(data_height)-log_roughness)
 
-    wind_energy = power_func(wnd_hub)
+    wind_energy = np.interp(wnd_hub, V, np.asarray(POW)/P)
+
     wind_energy = xr.DataArray(wind_energy, coords=ds[data_name].coords)
 
     return wind_energy
