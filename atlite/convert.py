@@ -367,11 +367,10 @@ def convert_wind(ds, turbine):
         if data_name in ds.data_vars: break
     else:
         raise AssertionError("Wind speed is not in dataset")
-
-    wnd_hub = (ds[data_name]
-                * xr.ufuncs.log(hub_height/ds['roughness'])
-                / xr.ufuncs.log(data_height/ds['roughness'])
-               )
+    
+    t = np.log(ds['roughness'])
+    t = (np.log(hub_height)-t)/(np.log(data_height)-t)
+    wnd_hub = ds[data_name] * t
     
     wind_energy = xr.apply_ufunc(power_func, wnd_hub)
     #wind_energy = xr.DataArray(np.interp(wnd_hub, V, utilisation),
