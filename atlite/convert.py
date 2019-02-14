@@ -355,11 +355,17 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
 def sanitise_roughness(roughness):
     roughness.values[roughness.values <= 0.0] = 0.0002
 
+def sub_rh(h, r):
+    return h-r
+
+def log_roughness(roughness):
+    return np.log(roughness)
+
 def log_data_height(data_height, roughness):
-    return np.log(data_height- roughness)
+    return sub_rh(np.log(data_height), log_roughness(roughness))
 
 def log_hub_height(hub_height, roughness):
-    return np.log(hub_height- roughness)
+    return sub_rh(np.log(hub_height), log_roughness(roughness))
 
 def wind_multiplication(wind_speed, hub_height, data_height, roughness):
     return wind_speed * log_hub_height(hub_height, roughness) / log_data_height(data_height, roughness)
@@ -379,7 +385,7 @@ def convert_wind(ds, turbine):
     
     sanitise_roughness(ds['roughness'])
 
-    wnd_hub = wind_multiplication(ds[data_name, hub_height, data_height, ds['roughness']]) 
+    wnd_hub = wind_multiplication(ds[data_name], hub_height, data_height, ds['roughness']) 
 
     wind_energy = xr.DataArray(power_interpolation(wnd_hub, V, POW, P), coords=ds[data_name].coords)
 
