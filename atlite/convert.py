@@ -353,12 +353,69 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
                                         **params)
 
 
+
 ## wind
+def extrapolate_wind_speed(ds, to_height, from_height=None):
+    '''Extrapolate the wind speed from a given height above ground to another.
+
+    If ds already contains a key refering to wind speeds at the desired to_height,
+    no conversion is done and the wind speeds are directly returned.
+
+    Extrapolation of the wind speed follows the logarithmic law as desribed in [1].
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        Dataset containing the wind speed time-series at 'from_height' with key
+        'wnd{height:d}m' and the surface orography with key 'roughness' at the
+        geographic locations of the wind speeds.
+    from_height : int
+        (Optional)
+        Height (m) from which the wind speeds are interpolated to 'to_height'.
+        If not provided, the closest height to 'to_height' is selected.
+    to_height : int
+        Height (m) to which the wind speeds are extrapolated to.
+    
+    Returns
+    -------
+    da : xarray.DataArray
+        DataArray containing the extrapolated wind speeds. Name of the DataArray
+        is 'wnd{to_height:d}'.
+
+    References
+    ----------
+    [1] Equation (2) in Andresen, G. et al (2015):
+        'Validation of Danish wind time series from a new global renewable energy atlas for energy system analysis'.
+    [2] https://en.wikipedia.org/w/index.php?title=Roughness_length&oldid=862127433, Retrieved 2019-02-15.
+
+    '''
+
+    to_name   = "wnd{h:d}m".format(d=to_height)
+
+    # Fast lane
+    if to_name in ds:
+        return ds[to_name]
+
+    if from_height is None:
+        # Determine closest height to to_name
+        heights = np.asarray([int(s[3:-1]) for s in ds if s.startswith("wnd")])
+        from_height = heights[np.argmin(np.abs(heights-to_height))]
+
+    from_name = "wnd{d:d}m".format(d=from_height)
+        
+    # Sanitise roughness for logarithm
+    # 0.0002 corresponds to open water [2]
+    ds['roughness'].values[ds['roughness'].values <= 0.0] = 0.0002
+
+    # Wind speed extrapolation
+    wnd_spd = ds[from_name] * ( np.log(to_height /ds['roughness'])
+                              / np.log(from_height/ds['roughness']))
+
+    return wnd_spd.rename(to_name)
+
 
 def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
-
-    ds['roughness'].values[ds['roughness'].values <= 0.0] = 0.0002
 
     for data_height in (100, 10):
         data_name = 'wnd%dm' % data_height
@@ -366,8 +423,8 @@ def convert_wind(ds, turbine):
     else:
         raise AssertionError("Wind speed is not in dataset")
 
-    wnd_hub = ds[data_name] * (np.log(hub_height/ds['roughness']) /
-                               np.log(data_height/ds['roughness']))
+    wnd_hub = extrapolate_wind_speed(ds, from_height=data_height, to_height=hub_height)
+
     wind_energy = xr.DataArray(np.interp(wnd_hub, V, np.asarray(POW)/P),
                                coords=wnd_hub.coords)
     return wind_energy
