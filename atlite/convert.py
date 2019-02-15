@@ -390,7 +390,7 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
 
     '''
 
-    to_name   = "wnd{h:d}m".format(d=to_height)
+    to_name   = "wnd{h:0d}m".format(h=to_height)
 
     # Fast lane
     if to_name in ds:
@@ -401,7 +401,7 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
         heights = np.asarray([int(s[3:-1]) for s in ds if s.startswith("wnd")])
         from_height = heights[np.argmin(np.abs(heights-to_height))]
 
-    from_name = "wnd{d:d}m".format(d=from_height)
+    from_name = "wnd{h:0d}m".format(h=from_height)
         
     # Sanitise roughness for logarithm
     # 0.0002 corresponds to open water [2]
