@@ -395,7 +395,7 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
 
     if not isinstance(to_height, int):
         logger.warn("Integer to_height expected but got {s}."
-                    "Type casting and continuing, may lead to unexpected results.".format(type(to_height))
+                    "Type casting and continuing, may lead to unexpected results.".format(s=type(to_height))
         )
         to_height = int(to_height)
 
@@ -409,6 +409,11 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
         # Determine closest height to to_name
         heights = np.asarray([int(s[3:-1]) for s in ds if s.startswith("wnd")])
         from_height = heights[np.argmin(np.abs(heights-to_height))]
+    elif isinstance(from_height, int):
+        logger.warn("Integer from_height expected but got {s}."
+                    "Type casting and continuing, may lead to unexpected results.".format(s=type(from_height))
+        )
+        from_height = int(from_height)
 
     from_name = "wnd{h:0d}m".format(h=from_height)
         
