@@ -33,6 +33,9 @@ from six import string_types
 from operator import itemgetter
 import progressbar as pgb
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .aggregate import aggregate_sum, aggregate_matrix
 from .gis import spdiag, compute_indicatormatrix
 
@@ -389,6 +392,12 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
     [2] https://en.wikipedia.org/w/index.php?title=Roughness_length&oldid=862127433, Retrieved 2019-02-15.
 
     '''
+
+    if not isinstance(to_height, int):
+        logger.warn("Integer to_height expected but got {s}."
+                    "Type casting and continuing, may lead to unexpected results.".format(type(to_height))
+        )
+        to_height = int(to_height)
 
     to_name   = "wnd{h:0d}m".format(h=to_height)
 
