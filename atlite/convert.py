@@ -359,7 +359,7 @@ def solar_thermal(cutout, orientation={'slope': 45., 'azimuth': 180.},
 
 ## wind
 def extrapolate_wind_speed(ds, to_height, from_height=None):
-    '''Extrapolate the wind speed from a given height above ground to another.
+    """Extrapolate the wind speed from a given height above ground to another.
 
     If ds already contains a key refering to wind speeds at the desired to_height,
     no conversion is done and the wind speeds are directly returned.
@@ -390,8 +390,7 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
     [1] Equation (2) in Andresen, G. et al (2015):
         'Validation of Danish wind time series from a new global renewable energy atlas for energy system analysis'.
     [2] https://en.wikipedia.org/w/index.php?title=Roughness_length&oldid=862127433, Retrieved 2019-02-15.
-
-    '''
+    """ 
 
     if not isinstance(to_height, int):
         logger.warn("Integer to_height expected but got {s}."
@@ -424,6 +423,12 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
     # Wind speed extrapolation
     wnd_spd = ds[from_name] * ( np.log(to_height /ds['roughness'])
                               / np.log(from_height/ds['roughness']))
+
+    wnd_spd.attrs.update({"long name":
+                            "extrapolated {ht:0d} m wind speed using logarithmic "
+                            "method with roughness and {hf:0d} m wind speed"
+                            "".format(ht=to_height, hf=from_height),
+                          "units" : "m s**-1"})
 
     return wnd_spd.rename(to_name)
 
