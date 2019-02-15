@@ -432,9 +432,10 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
 
     return wnd_spd.rename(to_name)
 
-
+from scipy.interpolate import interp1d
 def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
+    power_func = interp1d(V, np.asarray(POW)/P)
 
     for data_height in (100, 10):
         data_name = 'wnd%dm' % data_height
@@ -443,9 +444,8 @@ def convert_wind(ds, turbine):
         raise AssertionError("Wind speed is not in dataset")
 
     wnd_hub = extrapolate_wind_speed(ds, from_height=data_height, to_height=hub_height)
+    wind_energy = xr.apply_ufunc(power_func, wnd_hub)
 
-    wind_energy = xr.DataArray(np.interp(wnd_hub, V, np.asarray(POW)/P),
-                               coords=wnd_hub.coords)
     return wind_energy
 
 def wind(cutout, turbine, smooth=False, **params):
