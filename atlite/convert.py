@@ -409,7 +409,7 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
         # Determine closest height to to_name
         heights = np.asarray([int(s[3:-1]) for s in ds if s.startswith("wnd")])
         from_height = heights[np.argmin(np.abs(heights-to_height))]
-    elif isinstance(from_height, int):
+    elif not isinstance(from_height, int):
         logger.warn("Integer from_height expected but got {s}."
                     "Type casting and continuing, may lead to unexpected results.".format(s=type(from_height))
         )
