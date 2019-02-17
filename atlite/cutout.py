@@ -170,25 +170,32 @@ class Cutout(object):
         return self.open_datasets.setdefault(dataset_name,
                                             xr.open_dataset(dataset_name, **params))
             
-    def close_data(self, dataset_name):
+    def close_data(self, dataset_name=None, all=True):
         """Close the files associated with an xarray.DataSet and removes it from the internal cutout cache.
         
         Parameter
         ---------
-        dataset_name : str
-            String path to dataset file used to identify and close the dataset file.
-        Return
-        ------
-        bool : True|False
-            If the dataset_name was a valid dataset whose files where closed.
+        all : bool
+            (Default: True) Whether to close all open files or selectively only a few.
+            If 'dataset_name' is specified, only the provided dataset_name(s) are closed.
+        dataset_name : str, list(str)
+            (Default: None) String path to dataset file used to identify and close the dataset file.
         """
-        
-        ds = self.open_datasets.pop(dataset_name, None)
-        if isinstance(d, xr.Dataset):
-            ds.close()
-            return True
-        else:
-            return False
+        if not dataset_name and all is not True:
+            raise KeyError("'all' must be 'True' if 'dataset_name' is not provided.")
+
+        if dataset_name:
+            all = False
+            if isinstance(dataset_name, str):
+                dataset_name = [dataset_name]
+            data_sets =[self.open_datasets(dn, None) for dn in dataset_name]
+
+        if all is True:
+            data_sets = list(self.open_datasets.values())
+
+        for data_set in data_sets:
+            if isinstance(d, xr.Dataset):
+                d.close()
 
     ## Preparation functions
 
