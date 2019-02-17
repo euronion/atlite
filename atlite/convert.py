@@ -157,11 +157,12 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
         maybe_progressbar = lambda x: x
 
     for ym in maybe_progressbar(yearmonths):
-        with xr.open_dataset(cutout.datasetfn(ym)) as ds:
-            if 'view' in cutout.meta.attrs:
-                ds = ds.sel(**cutout.meta.attrs['view'])
-            da = convert_func(ds, **convert_kwds)
-            results.append(aggregate_func(da, **aggregate_kwds).load())
+        ds = cutout.open_data(cutout.datasetfn(ym))
+        if 'view' in cutout.meta.attrs:
+            ds = ds.sel(**cutout.meta.attrs['view'])
+        da = convert_func(ds, **convert_kwds)
+        results.append(aggregate_func(da, **aggregate_kwds).load())
+        # TODO add logic for closing files using cutout.close_data() function
     if 'time' in results[0].coords:
         results = xr.concat(results, dim='time')
     else:

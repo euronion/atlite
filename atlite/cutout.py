@@ -46,6 +46,8 @@ class Cutout(object):
         self.cutout_dir = os.path.join(cutout_dir, name)
         self.prepared = False
 
+        self.open_datasets = dict()
+
         if 'bounds' in cutoutparams:
             x1, y1, x2, y2 = cutoutparams.pop('bounds')
             cutoutparams.update(xs=slice(x1, x2),
@@ -148,6 +150,45 @@ class Cutout(object):
 
     def indicatormatrix(self, shapes, shapes_proj='latlong'):
         return compute_indicatormatrix(self.grid_cells(), shapes, self.projection, shapes_proj)
+    
+    def open_data(dataset_name, **params):
+        """Check the internal cache for an opened file or open it and keep it opened.
+        
+        Parameter
+        ---------
+        dataset_name : str
+            String path to dataset file used to identify and open to dataset.
+        **params : dict
+            Parameters passed to xarray.open_dataset() as options.
+        
+        Return
+        ------
+        xarray.DataSet 
+            Opened dataset_name
+        """
+        
+        return self.open_datasets.setdefault(dataset_name,
+                                            xr.open_dataset(dataset_name, **params))
+            
+    def close_data(dataset_name):
+        """Close the files associated with an xarray.DataSet and removes it from the internal cutout cache.
+        
+        Parameter
+        ---------
+        dataset_name : str
+            String path to dataset file used to identify and close the dataset file.
+        Return
+        ------
+        bool : True|False
+            If the dataset_name was a valid dataset whose files where closed.
+        """
+        
+        ds = self.open_datasets.pop(dataset_name, None)
+        if isinstance(d, xr.Dataset):
+            ds.close()
+            return True
+        else:
+            return False
 
     ## Preparation functions
 
