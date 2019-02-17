@@ -151,7 +151,7 @@ class Cutout(object):
     def indicatormatrix(self, shapes, shapes_proj='latlong'):
         return compute_indicatormatrix(self.grid_cells(), shapes, self.projection, shapes_proj)
     
-    def open_data(dataset_name, **params):
+    def open_data(self, dataset_name, **params):
         """Check the internal cache for an opened file or open it and keep it opened.
         
         Parameter
@@ -170,7 +170,7 @@ class Cutout(object):
         return self.open_datasets.setdefault(dataset_name,
                                             xr.open_dataset(dataset_name, **params))
             
-    def close_data(dataset_name):
+    def close_data(self, dataset_name):
         """Close the files associated with an xarray.DataSet and removes it from the internal cutout cache.
         
         Parameter
