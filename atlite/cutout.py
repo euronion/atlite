@@ -208,7 +208,7 @@ class Cutout(object):
             all = False
             if isinstance(dataset_name, str):
                 dataset_name = [dataset_name]
-            data_sets.extend([self._open_datasets(dn, None) for dn in dataset_name])
+            data_sets.extend([self._open_datasets.get(dn, None) for dn in dataset_name])
 
         if dataset:
             dataset = [d for d in dataset if d in self._open_datasets.values()]
