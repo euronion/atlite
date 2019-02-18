@@ -46,7 +46,7 @@ class Cutout(object):
         self.cutout_dir = os.path.join(cutout_dir, name)
         self.prepared = False
 
-        self.open_datasets = dict()
+        self._open_datasets = dict()
 
         if 'bounds' in cutoutparams:
             x1, y1, x2, y2 = cutoutparams.pop('bounds')
@@ -151,13 +151,17 @@ class Cutout(object):
     def indicatormatrix(self, shapes, shapes_proj='latlong'):
         return compute_indicatormatrix(self.grid_cells(), shapes, self.projection, shapes_proj)
     
-    def open_data(self, dataset_name, **params):
+    def open_data(self, dataset_name, cache=False, **params):
         """Check the internal cache for an opened file or open it and keep it opened.
         
         Parameter
         ---------
         dataset_name : str
             String path to dataset file used to identify and open to dataset.
+        cache : boolean
+            (Default: False) Whether to use an internal cache for the dataset object references.
+            Allows to keep-alive and reuse datasets instead of having to reopen
+            (and reload) them from disk to memory.
         **params : dict
             Parameters passed to xarray.open_dataset() as options.
         
@@ -166,36 +170,58 @@ class Cutout(object):
         xarray.DataSet 
             Opened dataset_name
         """
-        
-        return self.open_datasets.setdefault(dataset_name,
-                                            xr.open_dataset(dataset_name, **params))
+        if cache is True:
+            return self._open_datasets.setdefault(dataset_name, xr.open_dataset(dataset_name, **params))
+        elif cache is False:
+            return xr.open_dataset(dataset_name, **params)
+        else:
+            raise KeyError("'cache' must either be True or False.")
+
             
-    def close_data(self, dataset_name=None, all=True):
-        """Close the files associated with an xarray.DataSet and removes it from the internal cutout cache.
+    def close_data(self, dataset=None, dataset_name=None, all=True):
+        """Find, close and remove the dataset from the internal cache.
         
+        Searches for the dataset associated with file 'dataset_name' or
+        the dataset object 'dataset' in the internal cache and closes
+        it if it is found/present. Then deletes the dataset object reference.
+
+        Set 'all' to True, to clear the whole cache.
+
+        Does not save anything back to disk.
+
         Parameter
         ---------
         all : bool
             (Default: True) Whether to close all open files or selectively only a few.
-            If 'dataset_name' is specified, only the provided dataset_name(s) are closed.
+            If 'dataset_name' or 'dataset' are specified, only these provided ones are closed.
         dataset_name : str, list(str)
             (Default: None) String path to dataset file used to identify and close the dataset file.
+        dataset : xarray.Dataset, list(xarray.Dataset)
+            (Default: None) Dataset object to remove from cache and close, delete.
         """
-        if not dataset_name and all is not True:
-            raise KeyError("'all' must be 'True' if 'dataset_name' is not provided.")
+        if not dataset and not dataset_name and all is not True:
+            raise KeyError("Provide either 'dataset', 'dataset_name' or set 'all' to True.")
+
+        data_sets = []
 
         if dataset_name:
             all = False
             if isinstance(dataset_name, str):
                 dataset_name = [dataset_name]
-            data_sets =[self.open_datasets(dn, None) for dn in dataset_name]
+            data_sets.extend([self._open_datasets(dn, None) for dn in dataset_name])
+
+        if dataset:
+            dataset = [d for d in dataset if d in self._open_datasets.values()]
+            data_sets.extend(dataset)
 
         if all is True:
-            data_sets = list(self.open_datasets.values())
+            data_sets.extend(list(self._open_datasets.values()))
+            self._open_datasets.clear()
 
-        for data_set in data_sets:
+        for d in data_sets:
             if isinstance(d, xr.Dataset):
                 d.close()
+                del(d)
 
     ## Preparation functions
 

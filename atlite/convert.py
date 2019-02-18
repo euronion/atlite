@@ -53,7 +53,8 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
                           index=None, layout=None, shapes=None,
                           shapes_proj='latlong', per_unit=False,
                           return_capacity=False, capacity_factor=False,
-                          show_progress=True, **convert_kwds):
+                          show_progress=True, cache_datasets=False,
+                          **convert_kwds):
     """
     Convert and aggregate a weather-based renewable generation time-series.
 
@@ -89,6 +90,9 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
     show_progress : boolean|string
         Whether to show a progress bar if boolean and its label if given as a
         string (defaults to True).
+    cache_datasets : boolean
+        Whether to internally keep open and cache dataset files when conversion
+        are repeatedly calculated. Faster but requires more RAM.
 
     Returns
     -------
@@ -157,7 +161,7 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
         maybe_progressbar = lambda x: x
 
     for ym in maybe_progressbar(yearmonths):
-        ds = cutout.open_data(cutout.datasetfn(ym))
+        ds = cutout.open_data(cutout.datasetfn(ym), cache=cache_datasets)
         if 'view' in cutout.meta.attrs:
             ds = ds.sel(**cutout.meta.attrs['view'])
         da = convert_func(ds, **convert_kwds)
