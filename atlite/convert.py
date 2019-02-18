@@ -447,7 +447,7 @@ def convert_wind(ds, turbine):
     V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
     power_curve = xr.DataArray(POW, [('wind speed', V)], name='turbine power curve')
 
-    wnd_hub = extrapolate_wind_speed(ds, from_height=data_height, to_height=hub_height)
+    wnd_hub = extrapolate_wind_speed(ds, to_height=hub_height)
 
     return power_curve.interp({'wind speed':wnd_hub})
 
