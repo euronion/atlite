@@ -208,12 +208,13 @@ class Cutout(object):
             all = False
             if isinstance(dataset_name, str):
                 dataset_name = [dataset_name]
-            data_sets.extend([self._open_datasets.get(dn, None) for dn in dataset_name])
+            data_sets.extend([self._open_datasets.pop(dn, None) for dn in dataset_name])
 
         if dataset:
             all = False
-            dataset = [d for d in dataset if d in self._open_datasets.values()]
-            data_sets.extend(dataset)
+            for k,v in self._open_datasets.items():
+                if data_sets is v:
+                    data_sets.append(self._open_datasets.pop(k))
 
         if all is True:
             data_sets.extend(list(self._open_datasets.values()))
