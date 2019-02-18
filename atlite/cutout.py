@@ -178,7 +178,7 @@ class Cutout(object):
             raise KeyError("'cache' must either be True or False.")
 
             
-    def close_data(self, dataset=None, dataset_name=None, all=True):
+    def close_data(self, dataset_name=None, dataset=None, all=True):
         """Find, close and remove the dataset from the internal cache.
         
         Searches for the dataset associated with file 'dataset_name' or
@@ -211,6 +211,7 @@ class Cutout(object):
             data_sets.extend([self._open_datasets.get(dn, None) for dn in dataset_name])
 
         if dataset:
+            all = False
             dataset = [d for d in dataset if d in self._open_datasets.values()]
             data_sets.extend(dataset)
 
@@ -222,6 +223,7 @@ class Cutout(object):
             if isinstance(d, xr.Dataset):
                 d.close()
                 del(d)
+            
 
     ## Preparation functions
 
