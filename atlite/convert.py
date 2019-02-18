@@ -412,10 +412,14 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
     if from_height is None:
         # Determine closest height to to_name
         heights = np.asarray([int(s[3:-1]) for s in ds if s.startswith("wnd")])
+
+        if len(heights) == 0:
+            raise AssertionError("Wind speed is not in dataset")
+
         from_height = heights[np.argmin(np.abs(heights-to_height))]
     elif not isinstance(from_height, int):
         logger.warn("Integer from_height expected but got {s}."
-                    "Type casting and continuing, may lead to unexpected results.".format(s=type(from_height))
+                    "Trying to type caste and continue, may lead to unexpected results.".format(s=type(from_height))
         )
         from_height = int(from_height)
 
@@ -437,21 +441,15 @@ def extrapolate_wind_speed(ds, to_height, from_height=None):
 
     return wnd_spd.rename(to_name)
 
-from scipy.interpolate import interp1d
 def convert_wind(ds, turbine):
-    V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
-    power_func = interp1d(V, np.asarray(POW)/P)
+    """Convert wind speeds for turbine to wind energy generation."""
 
-    for data_height in (100, 10):
-        data_name = 'wnd%dm' % data_height
-        if data_name in ds.data_vars: break
-    else:
-        raise AssertionError("Wind speed is not in dataset")
+    V, POW, hub_height, P = itemgetter('V', 'POW', 'hub_height', 'P')(turbine)
+    power_curve = xr.DataArray(POW, [('wind speed', V)], name='turbine power curve')
 
     wnd_hub = extrapolate_wind_speed(ds, from_height=data_height, to_height=hub_height)
-    wind_energy = xr.apply_ufunc(power_func, wnd_hub)
 
-    return wind_energy
+    return power_curve.interp({'wind speed':wnd_hub})
 
 def wind(cutout, turbine, smooth=False, **params):
     """
