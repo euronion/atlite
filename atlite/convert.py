@@ -31,7 +31,6 @@ import datetime as dt
 import scipy as sp, scipy.sparse
 from six import string_types
 from operator import itemgetter
-import progressbar as pgb
 
 import logging
 logger = logging.getLogger(__name__)
@@ -44,10 +43,14 @@ from .pv.irradiation import TiltedIrradiation
 from .pv.solar_panel_model import SolarPanelModel
 from .pv.orientation import get_orientation, SurfaceOrientation
 
+from . import hydro as hydrom
+
 from .resource import (get_windturbineconfig, get_solarpanelconfig,
                        windturbine_rated_capacity_per_unit,
                        solarpanel_rated_capacity_per_unit,
                        windturbine_smooth)
+
+from .utils import make_optional_progressbar
 
 def convert_and_aggregate(cutout, convert_func, matrix=None,
                           index=None, layout=None, shapes=None,
@@ -141,24 +144,15 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
 
     yearmonths = cutout.coords['year-month'].to_index()
 
-    if show_progress is not False:
-        if isinstance(show_progress, string_types):
-            prefix = show_progress
-        else:
-            func_name = (convert_func.__name__[len('convert_'):]
-                         if convert_func.__name__.startswith('convert_')
-                         else convert_func.__name__)
-            prefix = 'Convert and aggregate `{}`: '.format(func_name)
-        widgets = [
-            pgb.widgets.Percentage(),
-            ' ', pgb.widgets.SimpleProgress(format='(%s)' % pgb.widgets.SimpleProgress.DEFAULT_FORMAT),
-            ' ', pgb.widgets.Bar(),
-            ' ', pgb.widgets.Timer(),
-            ' ', pgb.widgets.ETA()
-        ]
-        maybe_progressbar = pgb.ProgressBar(prefix=prefix, widgets=widgets, max_value=len(yearmonths))
+    if isinstance(show_progress, string_types):
+        prefix = show_progress
     else:
-        maybe_progressbar = lambda x: x
+        func_name = (convert_func.__name__[len('convert_'):]
+                        if convert_func.__name__.startswith('convert_')
+                        else convert_func.__name__)
+        prefix = 'Convert and aggregate `{}`: '.format(func_name)
+
+    maybe_progressbar = make_optional_progressbar(show_progress, prefix, len(yearmonths))
 
     for ym in maybe_progressbar(yearmonths):
         ds = cutout.open_data(cutout.datasetfn(ym), cache=cache_datasets)
@@ -557,7 +551,7 @@ def pv(cutout, panel, orientation, clearsky_model=None, **params):
 
 ## hydro
 
-def convert_runoff(ds):
+def convert_runoff(ds, weight_with_height=True):
     runoff = ds['runoff'] * ds['height']
     return runoff
 
@@ -596,3 +590,46 @@ def runoff(cutout, smooth=None, lower_threshold_quantile=None,
                    .reindex(countries=result.coords['countries']))
 
     return result
+
+def hydro(cutout, plants, hydrobasins, flowspeed=1, weight_with_height=False, show_progress=True, **kwargs):
+    """
+    Compute inflow time-series for `plants` by aggregating over catchment basins from `hydrobasins`
+
+    Parameters
+    ----------
+    plants : pd.DataFrame
+        Run-of-river plants or dams with lon, lat columns.
+    hydrobasins : str|gpd.GeoDataFrame
+        Filename or GeoDataFrame of one level of the HydroBASINS dataset.
+    flowspeed : float
+        Average speed of water flows to estimate the water travel time from
+        basin to plant (default: 1 m/s).
+    weight_with_height : bool
+        Whether surface runoff should be weighted by potential height (probably
+        better for coarser resolution).
+    show_progress : bool
+        Whether to display progressbars.
+
+    References
+    ----------
+    [1] Liu, Hailiang, et al. "A validated high-resolution hydro power
+    time-series model for energy systems analysis." arXiv preprint
+    arXiv:1901.08476 (2019).
+    [2] Lehner, B., Grill G. (2013): Global river hydrography and network
+    routing: baseline data and new approaches to study the world’s large river
+    systems. Hydrological Processes, 27(15): 2171–2186. Data is available at
+    www.hydrosheds.org.
+    """
+    basins = hydrom.determine_basins(plants, hydrobasins, show_progress=show_progress)
+
+    matrix = cutout.indicatormatrix(basins.shapes)
+    matrix_normalized = matrix / matrix.sum(axis=1) # compute the average surface runoff in each basin
+    runoff = cutout.runoff(matrix=matrix_normalized, index=basins.shapes.index,
+                           weight_with_height=weight_with_height,
+                           show_progress="Convert and aggregate runoff per basin" if show_progress else False,
+                           **kwargs)
+    # The hydrological parameters are in units of "m of water per day" and so
+    # they should be multiplied by 1000 and the basin area to convert to m3 d-1 = m3 h-1 / 24
+    runoff *= (1000. / 24.) * xr.DataArray(basins.shapes.to_crs(dict(proj="aea")).area)
+
+    return hydrom.shift_and_aggregate_runoff_for_plants(basins, runoff, flowspeed, show_progress)
