@@ -30,7 +30,7 @@ from six import string_types
 import logging
 logger = logging.getLogger(__name__)
 
-from . import config, datasets
+from . import datasets
 
 from .convert import (convert_and_aggregate, heat_demand, hydro, temperature,
                       wind, pv, runoff, solar_thermal, soil_temperature)
@@ -41,6 +41,9 @@ from .gis import compute_indicatormatrix
 
 class Cutout(object):
     def __init__(self, name=None, cutout_dir=config.cutout_dir, **cutoutparams):
+        self.config = dict()
+
+
         self.name = name
 
         self.cutout_dir = os.path.join(cutout_dir, name)
