@@ -88,6 +88,17 @@ Getting started
   you want to aggregate for your time series, and pass it to the
   appropriate converter function - see `examples/ <examples/>`_
 
+FAQ
+===
+
+* Which wind turbine models / PV panel models are available? Can I add new ones?
+
+  Wind turbine and PV panel models are stored in the
+  `atlite/resources <atlite/atlite/resources/` folder. Any of these models can 
+  be used. New models can be added by adding a similar structured file for each
+  new wind turbine / PV panel model.
+  
+
 Licence
 =======
 
