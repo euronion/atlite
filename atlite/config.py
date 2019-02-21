@@ -4,38 +4,41 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Config(object):
-    _SEARCH_PATHS =[
+    _SEARCH_PATHS = (
         os.path.expanduser("~"),
         os.path.dirname(atlite.__file__),
-    ]
+    )
 
     _FILE_NAME = ".atlite_config.yaml"
     _DEFAULT_NAME = ".atlite_config.default.yaml"
 
+    # Supported attributes
+    _ATTRS = (
+        "cutout_dir",
+        "ncep_dir",
+        "cordex_dir",
+        "sarah_dir",
+        "windturbine_dir",
+        "solarpanel_dir",
+        "gebco_path",
+        "config_path"
+    )
+
     def __init__(self, config_dict=None, config_path=None):
         """Create a config object using a dictionary or by specifying a config file path."""
 
-        # Add the following attributes to the instance
+        # Add attributes to the instance
         # Manual adding, since __set_attr__ was overwritten
-        attrs = [
-            "cutout_dir",
-            "ncep_dir",
-            "cordex_dir",
-            "sarah_dir",
-            "windturbine_dir",
-            "solarpanel_dir",
-            "gebco_path",
-        ]
-        for a in attrs:
+        for a in Config._ATTRS:
             self.__dict__[a] = None
 
         
         # Try to find a working config
         if config_dict and config_path:
-            raise TypeError("Only one of {config_dict, config_path} "
+            raise TypeError("Only one of config_dict or config_path "
                             "may be specified at a time")
         elif config_dict is not None:
-            self.update(self, config_dict)
+            self.update(config_dict)
         elif config_path is not None:
             self.read(config_path)
         else:
@@ -66,6 +69,30 @@ class Config(object):
             self.update(config_dict)
 
         logger.info("Configuration from {p} successfully read.".format(p=path))
+        self.__setattr__("config_path", path)
+    
+    def save(self, path, overwrite=False):
+        """Write the current configuration into a config file in the specified path.
+
+        Parameters
+        ----------
+        path : string or os.path
+            Including name of the new config file.
+        overwrite : boolean
+            (Default: False) Allow overwriting of existing files.
+        
+        """
+        import yaml
+
+        if os.path.exists(path) and overwrite is False:
+            raise FileExistsError("Overwriting disallowed for {p}".format(p=path))
+ 
+ 
+        # Construct attribute dict
+        config = {key:self.__getattribute__(key) for key in Config._ATTRS}
+       
+        with open(path, "w") as config_file:
+            yaml.dump(config, config_file, default_flow_style=False)
 
     def update(self, config_dict):
         """Update the existing config based on the config_dict dictionary"""
