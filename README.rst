@@ -88,6 +88,34 @@ Getting started
   you want to aggregate for your time series, and pass it to the
   appropriate converter function - see `examples/ <examples/>`_
 
+FAQ
+===
+
+* How can I change the locations (directories) for cutouts, weather datasets,
+    windturbine models, solarpanel models, ... ?
+
+  There are different ways to specify individual paths:
+  1. File with default locations:
+     Modify and rename `.atlite_config.example.yaml <atlite/.atlite_config.example.yaml>`
+     to `.atlite_config.yaml`. It can be placed in either the module home or your home directory
+     (`~` under Linux or `C:\Users\<your username>\` under Windows).
+     When loading or creating cutouts, these configurations will be used.
+     If no configuration file is found, the 
+     `default configuration <atlite/.atlite_config.default.yaml>` is used as fallback.
+  2. Modify the config of a cutout object.
+     The configuration used for a specific cutout can be changed during loading/creating
+     the cutout via the `config_path` keyword.
+  3. After a cutout created or loaded, the configuration can be updated using the
+     `.config.update(dict)` or `.config.read(path)` methods.
+
+  Note:
+  Configurations are not permanently linked to cutouts. When a cutout is loaded, either a
+  configuration file is explicitly given or the default locations are searched for
+  configuration files.
+  A configuration file can be created based on the current configuration using the
+  `.config.save(path)` method.
+
+
 Licence
 =======
 
