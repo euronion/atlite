@@ -87,6 +87,8 @@ class Config(object):
         if os.path.exists(path) and overwrite is False:
             raise FileExistsError("Overwriting disallowed for {p}".format(p=path))
  
+        # New path now points to the current config
+        self.__setattr__("config_path", path)
  
         # Construct attribute dict
         config = {key:self.__getattribute__(key) for key in Config._ATTRS}
