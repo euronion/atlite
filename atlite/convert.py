@@ -32,6 +32,9 @@ import scipy as sp, scipy.sparse
 from six import string_types
 from operator import itemgetter
 
+import logging
+logger = logging.getLogger(__name__)
+
 from .aggregate import aggregate_sum, aggregate_matrix
 from .gis import spdiag, compute_indicatormatrix
 
@@ -53,7 +56,8 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
                           index=None, layout=None, shapes=None,
                           shapes_proj='latlong', per_unit=False,
                           return_capacity=False, capacity_factor=False,
-                          show_progress=True, **convert_kwds):
+                          show_progress=True, cache_datasets=False,
+                          **convert_kwds):
     """
     Convert and aggregate a weather-based renewable generation time-series.
 
@@ -89,6 +93,9 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
     show_progress : boolean|string
         Whether to show a progress bar if boolean and its label if given as a
         string (defaults to True).
+    cache_datasets : boolean
+        Whether to internally keep open and cache dataset files when conversion
+        are repeatedly calculated. Faster but requires more RAM.
 
     Returns
     -------
@@ -148,11 +155,12 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
     maybe_progressbar = make_optional_progressbar(show_progress, prefix, len(yearmonths))
 
     for ym in maybe_progressbar(yearmonths):
-        with xr.open_dataset(cutout.datasetfn(ym)) as ds:
-            if 'view' in cutout.meta.attrs:
-                ds = ds.sel(**cutout.meta.attrs['view'])
-            da = convert_func(ds, **convert_kwds)
-            results.append(aggregate_func(da, **aggregate_kwds).load())
+        ds = cutout.open_data(cutout.datasetfn(ym), cache=cache_datasets)
+        if 'view' in cutout.meta.attrs:
+            ds = ds.sel(**cutout.meta.attrs['view'])
+        da = convert_func(ds, **convert_kwds)
+        results.append(aggregate_func(da, **aggregate_kwds).load())
+        # TODO add option for closing files using cutout.close_data() function (remove from cache)
     if 'time' in results[0].coords:
         results = xr.concat(results, dim='time')
     else:
