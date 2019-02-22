@@ -170,8 +170,15 @@ class Cutout(object):
         xarray.DataSet 
             Opened dataset_name
         """
+
         if cache is True:
-            return self._open_datasets.setdefault(dataset_name, xr.open_dataset(dataset_name, **params))
+
+            # Do not use .setdefault(..) at this point! (-> evaluation order of function parameters)
+            if dataset_name not in self._open_datasets:
+                self._open_datasets[dataset_name] = xr.open_dataset(dataset_name, **params).compute()
+
+            return self._open_datasets[dataset_name]
+
         elif cache is False:
             return xr.open_dataset(dataset_name, **params)
         else:
