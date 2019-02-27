@@ -62,9 +62,12 @@ def windturbine_rated_capacity_per_unit(turbine):
 
     return turbine['P']
 
-def windturbine_smooth(turbine, params={}):
-    '''
-    Smooth the powercurve in `turbine` with a gaussian kernel
+def windturbine_smooth(turbine, params={}, rescale=True):
+    '''Smooth the power curve in `turbine` via convolution with a gaussian kernel.
+
+    The convolution reduces the maximum power of the power curve.
+    Following [2], the power curve is rescaled to match the turbines
+    maximum rated power. Rescaling can be prevented via 'rescale' = False .
 
     Parameters
     ----------
@@ -72,8 +75,11 @@ def windturbine_smooth(turbine, params={}):
         Turbine config with at least V and POW
     params : dict
         Allows adjusting fleet availability eta, mean Delta_v and
-        stdev sigma. Defaults to values from Andresen's paper: 0.95,
-        1.27 and 2.29, respectively.
+        stdev sigma. Defaults to values used for Denmark in [1]:
+        0.95, 1.27 and 2.29, respectively.
+    rescale : boolean
+        Whether to rescale the smoothed power curve to its original
+        rated power (defaults to True).
 
     Returns
     -------
@@ -82,9 +88,13 @@ def windturbine_smooth(turbine, params={}):
 
     References
     ----------
-    G. B. Andresen, A. A. Søndergaard, M. Greiner, Validation of
+    [1] G. B. Andresen, A. A. Søndergaard, M. Greiner, Validation of
     Danish wind time series from a new global renewable energy atlas
     for energy system analysis, Energy 93, Part 1 (2015) 1074–1088.
+    [2] P. Nørgaard, H. Holttinen, A Multi-Turbine Power Curve Approach,
+    Proceedings of Nordic Wind Power Conference NWPC 2004. PDF available at
+    https://pdfs.semanticscholar.org/bbe0/1a9987893a53bd3c443b7e9b2773046f725c.pdf
+    (last accessed 2019-02-27).
     '''
 
     if not isinstance(params, dict):
@@ -116,7 +126,11 @@ def windturbine_smooth(turbine, params={}):
 
         return velocities_new, power_new
 
-    turbine = turbine.copy()
-    turbine['V'], turbine['POW'] = smooth(turbine['V'], turbine['POW'])
+    turbine_new = turbine.copy()
+    turbine_new['V'], turbine_new['POW'] = smooth(turbine['V'], turbine['POW'])
 
-    return turbine
+    if rescale is True:
+        turbine_new['POW'] = (turbine_new['POW'] / np.max(turbine_new['POW'])
+                             * np.max(turbine['POW']))
+
+    return turbine_new
