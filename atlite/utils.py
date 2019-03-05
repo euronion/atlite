@@ -23,6 +23,7 @@ Light-weight version of Aarhus RE Atlas for converting weather data to power sys
 """
 
 import progressbar as pgb
+from itertools import product
 
 def make_optional_progressbar(show, prefix, max_value):
     if show:

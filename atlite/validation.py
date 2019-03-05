@@ -31,8 +31,10 @@ def _calculate_total_difference(da, ref):
     return total_diff
 
 
+from .utils import product_dict
 def _calculate_dkl(da, ref):
-    from .utils import product_dict
+
+    no_of_bins = 100
 
     # +++ Calculating the probability distribution (mass) functions +++
     # There is no multidimensional groupby yet in xarray
