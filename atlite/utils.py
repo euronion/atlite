@@ -40,3 +40,10 @@ def make_optional_progressbar(show, prefix, max_value):
         maybe_progressbar = lambda x: x
 
     return maybe_progressbar
+
+def product_dict(**kwargs):
+    """Generate a cartesian product of the kwargs key-value pairs and returns them as dict-generator."""
+    keys = kwargs.keys()
+    vals = kwargs.values()
+    for instance in product(*vals):
+        yield dict(zip(keys, instance))
