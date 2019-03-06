@@ -30,6 +30,15 @@ def _calculate_total_difference(da, ref):
     total_diff.name = "TOTAL difference"
     return total_diff
 
+def _calculate_chi_square(da, ref):
+    chi_square = ((ref - da)**2/ref).sum(dim='time')
+    chi_square.name = "Chi square"
+    return chi_square
+
+def _calculate_mape(da, ref):
+    mape = np.abs((ref-da)/ref).mean(dim='time')
+    mape.name = "MAPE"
+    return mape
 
 from .utils import product_dict
 def _calculate_dkl(da, ref):
@@ -90,6 +99,8 @@ def _calculate_dkl(da, ref):
     
     return dkl
 
+
+
 def calculate_agreement(da, ref, measure='RMS'):
     """Calculate an agreement metric between a given and a reference generation time-series.
     
@@ -97,34 +108,36 @@ def calculate_agreement(da, ref, measure='RMS'):
     For DKL, the CF of the reference data set is calculated for each 'bus' along the 'time' dimension.
     All remaining dimensions are used for calculation of their respective coordinates DKLs.
     
-    Note: NaN entries are simply discarded, which can cause a small skew in probabilities.)
+    Note:
+    * NaN entries are simply discarded, which can cause a small skew in probabilities.)
+    * Recommmended measures for comparing Capacity Factors: MAPE, CHI_SQUARE, DKL
     
     Parameters
     ----------
     da : xarray.DataArray
         Data to evaluate along the necessary dimension 'time'.
-        For RMS this can be the generation time series or the capacity factor time series.
+        Except for measure='DKL', this can be the generation time series or the capacity factor time series.
         For DKL this must be the capacity factor time series.
     ref : xarray.DataArray
         Reference data with the same dimensions and coordinates as 'da'.
-    measure : ['RMS', 'DKL', 'TOTAL']
-        The measure to use for calculating the agreement. Can be:
-        Root-Mean-Square RMS (default), or Kullback-Leibler divergence DKL.
+    measure : ['RMS', 'DKL', 'TOTAL', 'MAPE', 'CHI_SQUARE']
+        The measure to use for calculating the agreement.
+        (Default: Root-Mean-Square RMS)
     """
-    
-    if measure.upper() not in ['RMS', 'DKL', 'TOTAL']:
+    funcs = {
+        "RMS"  : _calculate_rms,  # Root Mean Square error
+        "TOTAL": _calculate_total_difference,
+        "DKL"  : _calculate_dkl,  # Kullback-Leibler Divergence
+        "MAPE" : _calculate_mape, # Mean Absolute Percentage Error
+        "CHI_SQUARE" : _calculate_chi_square
+    } 
+
+    # Select function or return error
+    func = funcs.get(measure.upper())
+    if func is None:
         raise ValueError("Unknown measure {m}".format(m=measure))
-        
-    # Calculate Root Mean Square error
-    if measure.upper() == 'RMS':
-        calc_func = _calculate_rms
-    
-    # Calculate the total difference along the 'time' dimension
-    elif measure.upper() == 'TOTAL':
-        calc_func = _calculate_total_difference
-    
-    # Calculate the Kullback-Leibler divergence
-    elif measure.upper() == 'DKL':
-        calc_func = _calculate_dkl
+
+    # Calculate and return
+    return func(da, ref)
 
     return calc_func(da, ref)
