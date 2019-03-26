@@ -88,6 +88,17 @@ Getting started
   you want to aggregate for your time series, and pass it to the
   appropriate converter function - see `examples/ <examples/>`_
 
+FAQ
+===
+
+* I am running out of `temp` space when downloading cutouts
+    / I want to use a different location for the `temp` files
+    when downloading cutouts.  
+    `atlite` uses `mkstemp()` for creating temporary files and folders.
+    Following this standard, the location of the temporary folder can
+    be changed by setting the `TMP`, `TEMP` or `TMPDIR` environment
+    variable. `Further information in the `mkstemp()` documentation<https://docs.python.org/2/library/tempfile.html#tempfile.mkstemp>`
+
 Licence
 =======
 
