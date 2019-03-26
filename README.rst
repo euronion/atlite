@@ -77,7 +77,7 @@ Getting started
 * Install atlite from this repository with all its library dependencies
 * Download one of the weather datasets listed above (ERA5 is downloaded
   automatically on-demand after the ECMWF
-  `cdsapi<https://cds.climate.copernicus.eu/api-how-to>` client is 
+  `cdsapi <https://cds.climate.copernicus.eu/api-how-to>` client is 
   properly installed)
 * Adjust the `atlite/config.py <atlite/config.py>`_ directory paths to
   point to the directory where you downloaded the dataset
@@ -91,6 +91,16 @@ Getting started
 FAQ
 ===
 
+* Which weather dataset should I use?  
+  If you don't know which dataset to use, the ERA-5 dataset is an easy
+  and good way to start with.
+  
+* I am doing repeated conversions, is there a way to make things go faster?  
+  Some conversion function support and option via the keyword argument
+  `cache_datasets=True`. With this option, dataset objects are reused
+  and kept in memory. If you have enough memory or a small cutout,
+  this should make things faster for your.
+
 * Which wind turbine models / PV panel models are available? Can I add new ones?  
   Wind turbine and PV panel models are stored in the
   `atlite/resources <atlite/atlite/resources/` folder. Any of these models can 
@@ -103,7 +113,7 @@ FAQ
     `atlite` uses `mkstemp()` for creating temporary files and folders.
     Following this standard, the location of the temporary folder can
     be changed by setting the `TMP`, `TEMP` or `TMPDIR` environment
-    variable. `Further information in the `mkstemp()` documentation<https://docs.python.org/2/library/tempfile.html#tempfile.mkstemp>`
+    variable. `Further information in the mkstemp() documentation <https://docs.python.org/2/library/tempfile.html#tempfile.mkstemp>`
 
 Licence
 =======
