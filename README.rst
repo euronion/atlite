@@ -91,6 +91,12 @@ Getting started
 FAQ
 ===
 
+* Which wind turbine models / PV panel models are available? Can I add new ones?  
+  Wind turbine and PV panel models are stored in the
+  `atlite/resources <atlite/atlite/resources/` folder. Any of these models can 
+  be used. New models can be added by adding a similar structured file for each
+  new wind turbine / PV panel model.
+
 * I am running out of `temp` space when downloading cutouts
     / I want to use a different location for the `temp` files
     when downloading cutouts.  
@@ -101,7 +107,6 @@ FAQ
 
 Licence
 =======
-
 
 Copyright 2016-2017 Gorm Andresen (Aarhus University), Jonas Hörsch (FIAS), Tom Brown (FIAS), Markus Schlott (FIAS), David Schlachtberger (FIAS)
 
