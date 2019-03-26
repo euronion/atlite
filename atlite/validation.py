@@ -139,5 +139,3 @@ def calculate_agreement(da, ref, measure='RMS'):
 
     # Calculate and return
     return func(da, ref)
-
-    return calc_func(da, ref)
