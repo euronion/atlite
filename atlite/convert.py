@@ -57,7 +57,7 @@ def convert_and_aggregate(cutout, convert_func, matrix=None,
                           index=None, layout=None, shapes=None,
                           shapes_proj='latlong', per_unit=False,
                           return_capacity=False, capacity_factor=False,
-                          show_progress=True, cache_datasets=False,
+                          show_progress=True, cache_datasets=True,
                           **convert_kwds):
     """
     Convert and aggregate a weather-based renewable generation time-series.
