@@ -1,0 +1,8 @@
+HUB_HEIGHT: 40
+POW: [0.0, 0.0, 0.023, 0.059, 0.105, 0.164, 0.233, 0.308, 0.381, 0.44, 0.478, 0.494,
+  0.499, 0.5, 0.5, 0.0]
+V: [3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 25.0,
+  25.0]
+manufacturer: Vestas
+name: Vestas V39 500 kW
+source: http://www.iufmrese.cict.fr/concours/2002/CG_2002STI_lycee/Pour_en_savoir_plus/Vestas_V47.pdf
