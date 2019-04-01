@@ -40,8 +40,8 @@ def get_windturbineconfig(turbine):
     res_name = "resources/windturbine/" + turbine + ".yaml"
     turbineconf = yaml.load(resource_stream(__name__, res_name), Loader=yaml.SafeLoader)
     V, POW, hub_height = itemgetter('V', 'POW', 'HUB_HEIGHT')(turbineconf)
-    V = np.array(V)
-    POW = np.array(POW)
+    V = np.array(V, dtype=np.float64)
+    POW = np.array(POW, dtype=np.float64)
     return dict(V=V, POW=POW, hub_height=hub_height, P=np.max(POW))
 
 def get_solarpanelconfig(panel):
