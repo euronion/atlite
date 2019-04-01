@@ -1,15 +1,8 @@
-# Turbine characteristic data
-name: V164 7MW offshore
-# The manufacturer of this turbine
+HUB_HEIGHT: 100
+POW: [0.0, 0.0, 0.005, 0.095, 0.46, 0.9, 1.6, 2.5, 3.725, 5.0, 6.0, 6.7, 6.98, 7.0,
+  7.0, 0.0]
+V: [0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 25.0,
+  25.0]
 manufacturer: Vestas
-# Link to the original datasheet of the turbine
+name: V164 7MW offshore
 source: http://nozebra.ipapercms.dk/Vestas/Communication/Productbrochure/V16470MW/V16470MW/
-
-# Hub height in meters
-HUB_HEIGHT: 100.0
-# Power curve, specified as lists of velocities and powers, including
-# cut-in and cut-out speeds
-# Power curve velocities in m/s
-V: [0,2,3,4,5,6,7,8,9,10,11,12,13,14,25,25]
-# Generated power from the power curves in MW
-POW: [0.000,0.000,0.005,0.095,0.460,0.900,1.600,2.500,3.725,5.000,6.000,6.700,6.980,7.000,7.000,0.000]
