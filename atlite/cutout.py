@@ -175,7 +175,7 @@ class Cutout(object):
 
             # Do not use .setdefault(..) at this point! (-> evaluation order of function parameters)
             if dataset_name not in self._open_datasets:
-                self._open_datasets[dataset_name] = xr.open_dataset(dataset_name, **params).compute()
+                self._open_datasets[dataset_name] = xr.open_dataset(dataset_name, **params)
 
             return self._open_datasets[dataset_name]
 
