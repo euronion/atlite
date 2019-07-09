@@ -1,6 +1,7 @@
 name: atlite
 channels:
   - conda-forge
+  - bioconda
 dependencies:
   - six
   - numpy
@@ -20,3 +21,7 @@ dependencies:
   - conda-forge::rasterio
   - conda-forge::shapely
   - conda-forge::libgdal
+
+  # Need this for project
+  - bioconda::snakemake
+  - ipykernel
