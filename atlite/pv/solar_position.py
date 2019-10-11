@@ -66,10 +66,12 @@ def SolarPosition(ds, dtype=np.float32):
     az = az.where(h <= 0, dtype(2*np.pi) - az).rename('azimuth')
 
     if 'influx_toa' in ds:
-        atmospheric_insolation = ds['influx_toa'].rename('atmospheric insolation').astype(dtype)
+        atmospheric_insolation = ds['influx_toa']
     else:
         # [3]
-        atmospheric_insolation = (1366.1 * (1+0.033*np.cos(g)).astype(dtype) * np.sin(alt)).rename('atmospheric insolation')
+        atmospheric_insolation = (1366.1 * (1+0.033*np.cos(g)).astype(dtype) * np.sin(alt))
+
+    atmospheric_insolation = atmospheric_insolation.rename('atmospheric insolation').astype(dtype)
 
     solar_position = xr.Dataset({da.name: da
                                  for da in [alt,
