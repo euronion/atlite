@@ -110,7 +110,7 @@ def _albedo(ds, influx):
     elif 'outflux' in ds:
         with np.errstate(divide='ignore', invalid='ignore'):
             albedo = (ds['outflux'] / influx)
-            albedo.values[albedo.values > 1.0] = 1.0
+            albedo = albedo.clip(max=1.0).fillna(0.)
     else:
         raise AssertionError("Need either albedo or outflux as a variable in the dataset. Check your cutout and dataset module.")
 
@@ -123,9 +123,11 @@ def TiltedGroundIrrad(ds, solar_position, surface_orientation, influx):
 
 def TiltedIrradiation(ds, solar_position, surface_orientation, trigon_model, clearsky_model, altitude_threshold=1., dtype=np.float32):
 
-    influx_toa = solar_position['atmospheric insolation']
     def clip(influx, influx_max):
+        # TODO transposition obsolete? xarray aligns dims automatically nowadays...
         return influx.clip(min=0, max=influx_max.transpose(*influx.dims))
+
+    influx_toa = solar_position['atmospheric insolation']
 
     if 'influx' in ds:
         influx = clip(ds['influx'], influx_toa)
@@ -134,32 +136,33 @@ def TiltedIrradiation(ds, solar_position, surface_orientation, trigon_model, cle
     elif 'influx_direct' in ds and 'influx_diffuse' in ds:
         direct = clip(ds['influx_direct'], influx_toa)
         diffuse = clip(ds['influx_diffuse'], influx_toa - direct)
+        influx = direct + diffuse
     else:
         raise AssertionError("Need either influx or influx_direct and influx_diffuse in the dataset. Check your cutout and dataset module.")
 
+    # Irradiation on tilted plane
     if trigon_model == 'simple':
-        k = surface_orientation['cosincidence'] / np.sin(solar_position['altitude'])
         cos_surface_slope = np.cos(surface_orientation['slope'])
 
-        influx = direct + diffuse
-        direct_t = k * direct
+        direct_t = surface_orientation['cosincidence'] / np.sin(solar_position['altitude']) * direct
         diffuse_t = ((dtype(1) + cos_surface_slope) / dtype(2) * diffuse +
                      _albedo(ds, influx) * influx * ((dtype(1) - cos_surface_slope) / dtype(2)))
 
-        total_t = direct_t.fillna(0) + diffuse_t.fillna(0)
+        total_t = direct_t + diffuse_t
     else:
         diffuse_t = TiltedDiffuseIrrad(ds, solar_position, surface_orientation, direct, diffuse)
         direct_t = TiltedDirectIrrad(solar_position, surface_orientation, direct)
         ground_t = TiltedGroundIrrad(ds, solar_position, surface_orientation, direct + diffuse)
 
-        total_t = (direct_t + diffuse_t + ground_t).rename('total tilted')
-
+        total_t = direct_t + diffuse_t + ground_t
+    
+    total_t = total_t.fillna(0).rename('total tilted')
+    
     # The solar_position algorithms have a high error for small solar altitude
     # values, leading to big overall errors from the 1/sinaltitude factor.
     # => Suppress irradiation below solar altitudes of 1 deg.
 
     cap_alt = solar_position['altitude'] > np.deg2rad(altitude_threshold)
-    total_t = total_t.where(cap_alt & (direct + diffuse > 0.01), dtype(0))
-    # total_t.values[(cap_alt | (direct+diffuse <= 0.01)).transpose(*total_t.dims).values] = 0.
+    total_t = total_t.where(cap_alt & (influx > 0.01), dtype(0))
 
     return total_t
