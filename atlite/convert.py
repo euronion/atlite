@@ -412,13 +412,19 @@ def wind(cutout, turbine, smooth=False, **params):
 ## solar PV
 
 def convert_pv(ds, panel, orientation, trigon_model='simple', clearsky_model='simple'):
+
+    # .persist() statements in the following counter high memory usage
+    # see https://github.com/PyPSA/atlite/pull/48 for more information.
     solar_position = SolarPosition(ds)
+    solar_position = solar_position.persist()
     surface_orientation = SurfaceOrientation(ds, solar_position, orientation)
+    surface_orientation = surface_orientation.persist()
     irradiation = TiltedIrradiation(ds, solar_position, surface_orientation,
                                     trigon_model=trigon_model,
                                     clearsky_model=clearsky_model)
+    irradiation = irradiation.persist()
     solar_panel = SolarPanelModel(ds, irradiation, panel)
-    return solar_panel
+    return solar_panel.persist()
 
 @requires_windowed(['influx', 'temperature'])
 def pv(cutout, panel, orientation, clearsky_model=None, **params):
