@@ -27,6 +27,12 @@ def aggregate_sum(da):
     return da.sum('time')
 
 def aggregate_matrix(da, matrix, index):
+    # We could maybe get rid of this distinction?
+    # However the performance of the 'else' branch is significantly (2x-4x) lower than the upper one
+    # Could probably be substituted by a variation of the upper variant (w/o the whole casting)
+    # TODO: Need to compare results -> Debug mode
+    # TODO: Why is this here? Relict from when this was not equivalent yet (@xarray)?
+    
     if isinstance(da.data, dask.array.core.Array):
         da = da.stack(spatial=('y', 'x'))
         return xr.apply_ufunc(
