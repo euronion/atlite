@@ -69,8 +69,8 @@ def SurfaceOrientation(ds, solar_position, orientation):
 
     References
     ----------
-    [1] Sproul, A. B., Derivation of the solar geometric relationships using
-    vector analysis, Renewable Energy, 32(7), 1187–1205 (2007).
+    [1] (Eq. 28) in Sproul, A. B., Derivation of the solar geometric relationships
+    using vector analysis, Renewable Energy, 32(7), 1187–1205 (2007).
     """
 
     lon = np.deg2rad(ds['lon'])
